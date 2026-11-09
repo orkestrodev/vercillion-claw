@@ -30,8 +30,8 @@ function resolveTursoToken(): string {
   return match ? match[0] : raw;
 }
 
-const tursoUrl = resolveTursoUrl();
-const tursoToken = resolveTursoToken();
+export const tursoUrl = resolveTursoUrl();
+export const tursoToken = resolveTursoToken();
 
 const client = createClient({
   url: tursoUrl,

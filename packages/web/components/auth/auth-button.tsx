@@ -211,11 +211,6 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
             </div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <div className="flex items-center gap-2 px-2 py-1.5 text-xs text-zinc-500">
-            <Database className="size-3.5 text-emerald-500" />
-            <span>Turso DB (Free Tier)</span>
-          </div>
-          <DropdownMenuSeparator />
           <DropdownMenuItem
             variant="destructive"
             className="text-red-600 focus:bg-red-50 focus:text-red-700 dark:focus:bg-red-950/30 cursor-pointer"

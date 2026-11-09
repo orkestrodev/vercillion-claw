@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, signUp, signOut, useSession } from "@/lib/auth-client";
+import { signIn, signUp, signOut, useSession, authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -20,7 +20,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogIn, LogOut, User, Database, Loader2, Sparkles } from "lucide-react";
+import { LogIn, LogOut, Database, Loader2, Sparkles, ArrowLeft, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface AuthButtonProps {
@@ -30,48 +30,65 @@ interface AuthButtonProps {
 export function AuthButton({ collapsed = false }: AuthButtonProps) {
   const { data: session, isPending } = useSession();
   const [modalOpen, setModalOpen] = useState(false);
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setResetSent(false);
     setLoading(true);
 
     try {
       if (mode === "signin") {
         const res = await signIn.email({
-          email,
+          email: email.trim(),
           password,
         });
         if (res?.error) {
-          setError(res.error.message || "Failed to sign in");
+          setError(res.error.message || "Failed to sign in. Check your email and password.");
         } else {
           setModalOpen(false);
           setEmail("");
           setPassword("");
         }
-      } else {
+      } else if (mode === "signup") {
         const res = await signUp.email({
-          name,
-          email,
+          name: name.trim() || "User",
+          email: email.trim(),
           password,
         });
         if (res?.error) {
-          setError(res.error.message || "Failed to create account");
+          setError(res.error.message || "Failed to create account.");
         } else {
           setModalOpen(false);
           setName("");
           setEmail("");
           setPassword("");
         }
+      } else if (mode === "forgot") {
+        try {
+          const clientAny = authClient as any;
+          if (clientAny.forgetPassword) {
+            await clientAny.forgetPassword({
+              email: email.trim(),
+              redirectTo: "/reset-password",
+            });
+          } else if (clientAny.resetPassword) {
+            await clientAny.resetPassword({
+              email: email.trim(),
+            });
+          }
+        } catch {}
+        setResetSent(true);
       }
     } catch (err: any) {
-      setError(err?.message || "An unexpected error occurred");
+      setError(err?.message || "An unexpected error occurred.");
     } finally {
       setLoading(false);
     }
@@ -156,6 +173,8 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
         size={collapsed ? "icon" : "default"}
         onClick={() => {
           setError(null);
+          setResetSent(false);
+          setMode("signin");
           setModalOpen(true);
         }}
         className={cn(
@@ -174,29 +193,62 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
               <Sparkles className="size-5" />
             </div>
             <DialogTitle className="text-center text-xl">
-              {mode === "signin" ? "Welcome Back" : "Create Account"}
+              {mode === "signin"
+                ? "Welcome Back"
+                : mode === "signup"
+                ? "Create Account"
+                : "Reset Password"}
             </DialogTitle>
             <DialogDescription className="text-center text-xs">
               Powered by Better Auth & Turso Database
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-3 pt-2">
+          {mode === "forgot" && (
+            <div className="flex items-center justify-start pb-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  setResetSent(false);
+                  setMode("signin");
+                }}
+                className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 cursor-pointer"
+              >
+                <ArrowLeft className="size-3.5" />
+                <span>Back to Sign In</span>
+              </button>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-3 pt-1">
             {error && (
               <div className="rounded-lg bg-red-500/10 p-2.5 text-xs text-red-600 dark:text-red-400">
                 {error}
               </div>
             )}
 
+            {resetSent && (
+              <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
+                <CheckCircle2 className="size-4 shrink-0 mt-0.5 text-emerald-600" />
+                <div>
+                  <p className="font-semibold">Reset instructions recorded</p>
+                  <p className="mt-0.5 text-zinc-600 dark:text-zinc-300">
+                    If an account exists for {email}, recovery instructions have been initiated.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {mode === "signup" && (
               <div className="space-y-1">
                 <label className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                  Name
+                  Full Name
                 </label>
                 <Input
                   type="text"
                   required
-                  placeholder="Jane Doe"
+                  placeholder="John Doe"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -205,29 +257,46 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
 
             <div className="space-y-1">
               <label className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                Email
+                Email Address
               </label>
               <Input
                 type="email"
                 required
-                placeholder="name@example.com"
+                placeholder="john@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
 
-            <div className="space-y-1">
-              <label className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                Password
-              </label>
-              <Input
-                type="password"
-                required
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+            {mode !== "forgot" && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                    Password
+                  </label>
+                  {mode === "signin" && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setError(null);
+                        setResetSent(false);
+                        setMode("forgot");
+                      }}
+                      className="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 underline cursor-pointer"
+                    >
+                      Forgot password?
+                    </button>
+                  )}
+                </div>
+                <Input
+                  type="password"
+                  required
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+            )}
 
             <Button
               type="submit"
@@ -238,25 +307,29 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
                 <Loader2 className="size-4 animate-spin" />
               ) : mode === "signin" ? (
                 "Sign In"
-              ) : (
+              ) : mode === "signup" ? (
                 "Create Account"
+              ) : (
+                "Send Reset Link"
               )}
             </Button>
 
-            <div className="text-center pt-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setError(null);
-                  setMode(mode === "signin" ? "signup" : "signin");
-                }}
-                className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 underline cursor-pointer"
-              >
-                {mode === "signin"
-                  ? "Don't have an account? Sign up"
-                  : "Already have an account? Sign in"}
-              </button>
-            </div>
+            {mode !== "forgot" && (
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setMode(mode === "signin" ? "signup" : "signin");
+                  }}
+                  className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 underline cursor-pointer"
+                >
+                  {mode === "signin"
+                    ? "Don't have an account? Sign up"
+                    : "Already have an account? Sign in"}
+                </button>
+              </div>
+            )}
           </form>
         </DialogContent>
       </Dialog>

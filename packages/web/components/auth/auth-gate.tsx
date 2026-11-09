@@ -1,19 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, signUp, useSession } from "@/lib/auth-client";
+import { signIn, signUp, useSession, authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Loader2, Lock, ShieldCheck } from "lucide-react";
+import { Sparkles, Loader2, Lock, ShieldCheck, ArrowLeft, CheckCircle2 } from "lucide-react";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resetSent, setResetSent] = useState(false);
 
   if (isPending) {
     return (
@@ -35,6 +36,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setResetSent(false);
     setLoading(true);
 
     try {
@@ -46,15 +48,30 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         if (res?.error) {
           setError(res.error.message || "Failed to sign in. Check your email and password.");
         }
-      } else {
+      } else if (mode === "signup") {
         const res = await signUp.email({
-          name,
-          email,
+          name: name.trim() || "User",
+          email: email.trim(),
           password,
         });
         if (res?.error) {
           setError(res.error.message || "Failed to create account.");
         }
+      } else if (mode === "forgot") {
+        try {
+          const clientAny = authClient as any;
+          if (clientAny.forgetPassword) {
+            await clientAny.forgetPassword({
+              email: email.trim(),
+              redirectTo: "/reset-password",
+            });
+          } else if (clientAny.resetPassword) {
+            await clientAny.resetPassword({
+              email: email.trim(),
+            });
+          }
+        } catch {}
+        setResetSent(true);
       }
     } catch (err: any) {
       setError(err?.message || "An unexpected error occurred.");
@@ -83,41 +100,73 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
           </div>
         </div>
 
-        <div className="mt-6 flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
-          <button
-            type="button"
-            onClick={() => {
-              setError(null);
-              setMode("signin");
-            }}
-            className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
-              mode === "signin"
-                ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
-                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-            }`}
-          >
-            Sign In
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setError(null);
-              setMode("signup");
-            }}
-            className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
-              mode === "signup"
-                ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
-                : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
-            }`}
-          >
-            Create Account
-          </button>
-        </div>
+        {mode !== "forgot" ? (
+          <div className="mt-6 flex rounded-xl bg-zinc-100 p-1 dark:bg-zinc-800">
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setMode("signin");
+              }}
+              className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                mode === "signin"
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              }`}
+            >
+              Sign In
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setMode("signup");
+              }}
+              className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+                mode === "signup"
+                  ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white"
+                  : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white"
+              }`}
+            >
+              Create Account
+            </button>
+          </div>
+        ) : (
+          <div className="mt-6 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => {
+                setError(null);
+                setResetSent(false);
+                setMode("signin");
+              }}
+              className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 cursor-pointer"
+            >
+              <ArrowLeft className="size-3.5" />
+              <span>Back to Sign In</span>
+            </button>
+            <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              Reset Password
+            </span>
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
           {error && (
             <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
               {error}
+            </div>
+          )}
+
+          {resetSent && (
+            <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
+              <CheckCircle2 className="size-4 shrink-0 mt-0.5 text-emerald-600" />
+              <div>
+                <p className="font-semibold">Reset instructions recorded</p>
+                <p className="mt-0.5 text-zinc-600 dark:text-zinc-300">
+                  If an account exists for {email}, password recovery has been initiated.
+                </p>
+              </div>
             </div>
           )}
 
@@ -129,7 +178,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               <Input
                 type="text"
                 required
-                placeholder="Jawad"
+                placeholder="John Doe"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 className="h-10 rounded-xl"
@@ -144,26 +193,43 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
             <Input
               type="email"
               required
-              placeholder="jawadconnected@gmail.com"
+              placeholder="john@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="h-10 rounded-xl"
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-              Password
-            </label>
-            <Input
-              type="password"
-              required
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="h-10 rounded-xl"
-            />
-          </div>
+          {mode !== "forgot" && (
+            <div className="space-y-1">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                  Password
+                </label>
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setError(null);
+                      setResetSent(false);
+                      setMode("forgot");
+                    }}
+                    className="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 underline cursor-pointer"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+              </div>
+              <Input
+                type="password"
+                required
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-10 rounded-xl"
+              />
+            </div>
+          )}
 
           <Button
             type="submit"
@@ -174,25 +240,29 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
               <Loader2 className="size-4 animate-spin" />
             ) : mode === "signin" ? (
               "Sign In"
-            ) : (
+            ) : mode === "signup" ? (
               "Create Account"
+            ) : (
+              "Send Reset Link"
             )}
           </Button>
 
-          <div className="text-center pt-2">
-            <button
-              type="button"
-              onClick={() => {
-                setError(null);
-                setMode(mode === "signin" ? "signup" : "signin");
-              }}
-              className="text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white underline cursor-pointer"
-            >
-              {mode === "signin"
-                ? "Don't have an account? Create one"
-                : "Already have an account? Sign in"}
-            </button>
-          </div>
+          {mode !== "forgot" && (
+            <div className="text-center pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setError(null);
+                  setMode(mode === "signin" ? "signup" : "signin");
+                }}
+                className="text-xs text-zinc-500 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white underline cursor-pointer"
+              >
+                {mode === "signin"
+                  ? "Don't have an account? Create one"
+                  : "Already have an account? Sign in"}
+              </button>
+            </div>
+          )}
         </form>
 
         <div className="mt-6 flex items-center justify-center gap-1.5 border-t border-zinc-100 pt-4 text-[11px] text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">

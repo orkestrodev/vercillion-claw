@@ -54,7 +54,13 @@ This repository is optimized for serverless container deployment on **Google Clo
 # Set your active GCP project
 gcloud config set project [PROJECT_ID]
 
-# Deploy from source using Cloud Build
+# Grant Cloud Run service account access to Secret Manager
+PROJECT_NUMBER=$(gcloud projects describe [PROJECT_ID] --format='value(projectNumber)')
+gcloud projects add-iam-policy-binding [PROJECT_ID] \
+  --member="serviceAccount:${PROJECT_NUMBER}-compute@developer.gserviceaccount.com" \
+  --role="roles/secretmanager.secretAccessor"
+
+# Deploy from source with production optimization flags
 gcloud run deploy vercillion-claw \
   --source . \
   --region us-central1 \
@@ -62,8 +68,11 @@ gcloud run deploy vercillion-claw \
   --memory 2Gi \
   --cpu 2 \
   --timeout 300s \
-  --set-env-vars="MASTRA_HOST=0.0.0.0,NODE_ENV=production,OPENAI_BASE_URL=https://apimaster.ai/v1,DEFAULT_MODEL=gpt-6-luna" \
-  --set-secrets="OPENAI_API_KEY=OPENAI_API_KEY:latest"
+  --concurrency 10 \
+  --max-instances 3 \
+  --no-cpu-throttling \
+  --set-env-vars="MASTRA_HOST=0.0.0.0,NODE_ENV=production,OPENAI_BASE_URL=https://apimaster.ai/v1,DEFAULT_MODEL=gpt-6-luna,TURSO_DATABASE_URL=libsql://vextral-vextralai.aws-eu-central-1.turso.io" \
+  --set-secrets="OPENAI_API_KEY=OPENAI_API_KEY:latest,TURSO_AUTH_TOKEN=TURSO_AUTH_TOKEN:latest"
 ```
 
 ---

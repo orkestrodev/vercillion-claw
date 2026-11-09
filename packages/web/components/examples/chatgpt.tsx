@@ -62,7 +62,7 @@ export const ChatGPT: FC = () => {
               <ThreadScrollToBottom />
               <Composer placeholder="Ask anything" />
               <p className="text-center text-xs text-[#5d5d5d] dark:text-[#afafaf]">
-                ChatGPT can make mistakes. Check important info.
+                Vercillion Claw can make mistakes. Check important info.
               </p>
             </ThreadPrimitive.ViewportFooter>
           </ThreadPrimitive.Viewport>

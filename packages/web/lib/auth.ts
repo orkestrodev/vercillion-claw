@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth";
 import { createClient } from "@libsql/client/web";
 import { LibsqlDialect } from "@libsql/kysely-libsql";
+import { sendEmail, generatePasswordResetEmail } from "./email";
 
 const FALLBACK_TURSO_URL = "libsql://vextral-vextralai.aws-eu-central-1.turso.io";
 const FALLBACK_TURSO_TOKEN =
@@ -82,6 +83,25 @@ export const auth = betterAuth({
     enabled: true,
     async sendResetPassword(data) {
       console.log(`[AUTH] Password reset requested for ${data.user.email}. Reset URL: ${data.url}`);
+      try {
+        const { html, text, subject } = generatePasswordResetEmail({
+          resetUrl: data.url,
+          userEmail: data.user.email,
+        });
+        const result = await sendEmail({
+          to: data.user.email,
+          subject,
+          html,
+          text,
+        });
+        if (!result.success) {
+          console.warn(`[AUTH] Resend email delivery notice for ${data.user.email}: ${result.error}`);
+        } else {
+          console.log(`[AUTH] Password reset email delivered successfully via Resend to ${data.user.email}`);
+        }
+      } catch (err: any) {
+        console.error(`[AUTH] Error sending password reset email:`, err?.message || err);
+      }
     },
   },
   trustedOrigins: [

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, signUp, signOut, useSession } from "@/lib/auth-client";
+import { signIn, signUp, signOut, useSession, requestPasswordReset } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -31,6 +31,7 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
   const { data: session, isPending } = useSession();
   const [modalOpen, setModalOpen] = useState(false);
   const [mode, setMode] = useState<"signin" | "signup" | "forgot">("signin");
+  const [forgotMethod, setForgotMethod] = useState<"email" | "direct">("email");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -73,23 +74,36 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
           setPassword("");
         }
       } else if (mode === "forgot") {
-        const res = await fetch("/api/auth/reset-password-direct", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
+        if (forgotMethod === "email") {
+          const res = await requestPasswordReset({
             email: email.trim(),
-            newPassword: newPassword,
-          }),
-        });
+            redirectTo: window.location.origin + "/reset-password",
+          });
 
-        const data = await res.json();
-        if (!res.ok) {
-          setError(data.error || "Failed to reset password.");
+          if (res?.error) {
+            setError(res.error.message || "Failed to send reset link.");
+          } else {
+            setSuccessMsg("Reset link sent! Please check your email inbox to reset your password.");
+          }
         } else {
-          setSuccessMsg("Password reset successfully! Please sign in with your new password.");
-          setPassword("");
-          setNewPassword("");
-          setMode("signin");
+          const res = await fetch("/api/auth/reset-password-direct", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email.trim(),
+              newPassword: newPassword,
+            }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            setError(data.error || "Failed to reset password.");
+          } else {
+            setSuccessMsg("Password reset successfully! Please sign in with your new password.");
+            setPassword("");
+            setNewPassword("");
+            setMode("signin");
+          }
         }
       }
     } catch (err: any) {
@@ -269,18 +283,20 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
             </div>
 
             {mode === "forgot" ? (
-              <div className="space-y-1">
-                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
-                  New Password
-                </label>
-                <Input
-                  type="password"
-                  required
-                  placeholder="Enter new password (min. 8 chars)"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-              </div>
+              forgotMethod === "direct" ? (
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                    New Password
+                  </label>
+                  <Input
+                    type="password"
+                    required
+                    placeholder="Enter new password (min. 8 chars)"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                  />
+                </div>
+              ) : null
             ) : (
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
@@ -294,6 +310,7 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
                         setError(null);
                         setSuccessMsg(null);
                         setNewPassword("");
+                        setForgotMethod("email");
                         setMode("forgot");
                       }}
                       className="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 underline cursor-pointer"
@@ -323,10 +340,30 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
                 "Sign In"
               ) : mode === "signup" ? (
                 "Create Account"
+              ) : forgotMethod === "email" ? (
+                "Send Reset Link"
               ) : (
-                "Update Password"
+                "Update Password Directly"
               )}
             </Button>
+
+            {mode === "forgot" && (
+              <div className="text-center pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setError(null);
+                    setSuccessMsg(null);
+                    setForgotMethod(forgotMethod === "email" ? "direct" : "email");
+                  }}
+                  className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 underline cursor-pointer"
+                >
+                  {forgotMethod === "email"
+                    ? "Don't have access to email? Reset directly"
+                    : "Prefer email? Send reset link to inbox instead"}
+                </button>
+              </div>
+            )}
 
             {mode !== "forgot" && (
               <div className="text-center pt-2">

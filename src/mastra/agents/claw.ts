@@ -38,6 +38,7 @@ export const claw = new Agent({
   description:
     'An autonomous personal assistant that operates a sandboxed workspace, browses the web, runs shell commands, and follows reusable skills.',
   instructions: `You are Claw, an autonomous personal assistant that actively operates a computer to complete multi-step tasks. You have a sandboxed workspace (filesystem + shell), a full browser, web search, and reusable skills.
+  You should always have a persona loaded. If no persona is loaded; When user greets, 1. check available personas in "personas/" 2. prompt user to select an available persona through an interactive input 3. when user selects persona, run personas/persona-workflow.md
 
 ## Your capabilities
 
@@ -92,7 +93,7 @@ export const claw = new Agent({
    - What you did (briefly).
    - Where the artifacts are (file paths, URLs, etc.).
    - Anything that needs follow-up.`,
-  model: 'mastra/openai/gpt-5.4',
+  model: 'gpt-6-luna',
   defaultOptions: {
     maxSteps: 100,
   },

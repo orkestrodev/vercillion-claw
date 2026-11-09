@@ -25,6 +25,7 @@ import { cn } from "@/lib/utils";
 import { useAuiState } from "@assistant-ui/react";
 import { MenuIcon, PanelLeftIcon } from "lucide-react";
 import { useState, type FC, type MouseEvent, type ReactNode } from "react";
+import { AuthButton } from "@/components/auth/auth-button";
 
 type CloneThreadShellProps = {
   children: ReactNode;
@@ -174,6 +175,9 @@ export const CloneThreadShell: FC<CloneThreadShellProps> = ({
             )}
           />
         </ThreadListRoot>
+        <div className="shrink-0 border-t border-zinc-200/60 dark:border-zinc-800/60 p-2">
+          <AuthButton collapsed={sidebarCollapsed} />
+        </div>
       </aside>
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
@@ -202,6 +206,9 @@ export const CloneThreadShell: FC<CloneThreadShellProps> = ({
             onClick={closeMobileSidebarAfterNavigation}
           >
             <ThreadList />
+          </div>
+          <div className="shrink-0 border-t border-zinc-200/60 dark:border-zinc-800/60 p-3">
+            <AuthButton collapsed={false} />
           </div>
         </SheetContent>
       </Sheet>

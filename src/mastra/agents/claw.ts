@@ -108,6 +108,6 @@ export const claw = new Agent({
     ...(process.env.BROWSER_CDP_URL ? { cdpUrl: process.env.BROWSER_CDP_URL, scope: 'shared' as const } : {}),
   }),
   tools: {
-    web_search: openai.tools.webSearch({}),
+    web_search: openai.tools.webSearch({}) as any,
   },
 });

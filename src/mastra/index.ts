@@ -28,10 +28,10 @@ const workspace = new Workspace({
   skills: ['skills'],
 });
 
-const tursoUrl = process.env.TURSO_DATABASE_URL;
-if (!tursoUrl) {
-  throw new Error('TURSO_DATABASE_URL is not set. Provide a Turso libSQL URL.');
-}
+const tursoUrl = process.env.TURSO_DATABASE_URL || 'file:./mastra.db';
+
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 7860;
+const host = process.env.MASTRA_HOST || '0.0.0.0';
 
 export const mastra = new Mastra({
   workspace,
@@ -43,4 +43,8 @@ export const mastra = new Mastra({
   }),
   editor: new MastraEditor({ source: 'code', codePath: 'mastra/editor' }),
   logger: new PinoLogger({ name: 'claw', level: 'info' }),
+  server: {
+    host,
+    port,
+  },
 });

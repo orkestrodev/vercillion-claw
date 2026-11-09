@@ -38,6 +38,34 @@ Configure the following in your Space's **Settings > Variables and secrets**:
 | `BROWSER_HEADLESS` | No | Set to `false` to run browser headfully (defaults to headless). |
 | `BROWSER_CDP_URL` | No | Optional hosted browser CDP URL (e.g. Browserbase) for external browser execution. |
 
+
+---
+
+## Deployment on Google Cloud Run
+
+This repository is optimized for serverless container deployment on **Google Cloud Run**:
+- **Default Port**: `8080` (automatically picked up from `PORT` environment variable).
+- **Execution Mode**: Direct source-to-container with Cloud Build (`--source .`) or via prebuilt container images.
+- **Resource Recommendations**: Minimum `2Gi` memory and `2` vCPUs for running Playwright Chromium in headless mode.
+
+### Quick Deploy (Source-to-Container)
+
+```bash
+# Set your active GCP project
+gcloud config set project [PROJECT_ID]
+
+# Deploy from source using Cloud Build
+gcloud run deploy vercillion-claw \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --memory 2Gi \
+  --cpu 2 \
+  --timeout 300s \
+  --set-env-vars="MASTRA_HOST=0.0.0.0,NODE_ENV=production,OPENAI_BASE_URL=https://apimaster.ai/v1,DEFAULT_MODEL=gpt-6-luna" \
+  --set-secrets="OPENAI_API_KEY=OPENAI_API_KEY:latest"
+```
+
 ---
 
 ## Local Development

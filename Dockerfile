@@ -30,7 +30,7 @@ ENV HOME=/home/user \
     APP_DIR=/home/user/app \
     PATH=/home/user/.local/bin:$PATH \
     PLAYWRIGHT_BROWSERS_PATH=/home/user/.cache/ms-playwright \
-    PORT=7860 \
+    PORT=8080 \
     MASTRA_HOST=0.0.0.0 \
     NODE_ENV=production \
     TURSO_DATABASE_URL=file:/home/user/app/mastra.db \
@@ -65,8 +65,8 @@ RUN chown -R 1000:1000 /home/user
 # Switch to non-root user (UID 1000) for security and Hugging Face Spaces compatibility
 USER 1000
 
-# Expose default Hugging Face Spaces port
-EXPOSE 7860
+# Expose default Cloud Run / container port
+EXPOSE 8080
 
 # Start Mastra server
 CMD ["npm", "run", "start"]

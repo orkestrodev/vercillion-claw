@@ -30,7 +30,7 @@ const workspace = new Workspace({
 
 const tursoUrl = process.env.TURSO_DATABASE_URL || 'file:./mastra.db';
 
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 7860;
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 8080;
 const host = process.env.MASTRA_HOST || '0.0.0.0';
 
 export const mastra = new Mastra({

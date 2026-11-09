@@ -1,10 +1,15 @@
 import path from 'node:path';
-import { openai } from '@ai-sdk/openai';
+import { openai, createOpenAI } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
 import { AgentBrowser } from '@mastra/agent-browser';
 import { LocalFilesystem, LocalSandbox, Workspace } from '@mastra/core/workspace';
 import 'playwright';
+
+const modelProvider = createOpenAI({
+  baseURL: process.env.OPENAI_BASE_URL || undefined,
+  apiKey: process.env.OPENAI_API_KEY,
+});
 
 const headless = process.env.BROWSER_HEADLESS !== 'false';
 
@@ -93,7 +98,7 @@ export const claw = new Agent({
    - What you did (briefly).
    - Where the artifacts are (file paths, URLs, etc.).
    - Anything that needs follow-up.`,
-  model: 'gpt-6-luna',
+  model: modelProvider(process.env.DEFAULT_MODEL || 'gpt-6-luna'),
   defaultOptions: {
     maxSteps: 100,
   },

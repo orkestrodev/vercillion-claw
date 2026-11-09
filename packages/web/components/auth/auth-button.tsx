@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, signUp, signOut, useSession, authClient } from "@/lib/auth-client";
+import { signIn, signUp, signOut, useSession } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -34,14 +34,15 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [resetSent, setResetSent] = useState(false);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setResetSent(false);
+    setSuccessMsg(null);
     setLoading(true);
 
     try {
@@ -72,20 +73,24 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
           setPassword("");
         }
       } else if (mode === "forgot") {
-        try {
-          const clientAny = authClient as any;
-          if (clientAny.forgetPassword) {
-            await clientAny.forgetPassword({
-              email: email.trim(),
-              redirectTo: "/reset-password",
-            });
-          } else if (clientAny.resetPassword) {
-            await clientAny.resetPassword({
-              email: email.trim(),
-            });
-          }
-        } catch {}
-        setResetSent(true);
+        const res = await fetch("/api/auth/reset-password-direct", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email.trim(),
+            newPassword: newPassword,
+          }),
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Failed to reset password.");
+        } else {
+          setSuccessMsg("Password reset successfully! Please sign in with your new password.");
+          setPassword("");
+          setNewPassword("");
+          setMode("signin");
+        }
       }
     } catch (err: any) {
       setError(err?.message || "An unexpected error occurred.");
@@ -173,7 +178,7 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
         size={collapsed ? "icon" : "default"}
         onClick={() => {
           setError(null);
-          setResetSent(false);
+          setSuccessMsg(null);
           setMode("signin");
           setModalOpen(true);
         }}
@@ -210,7 +215,7 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
                 type="button"
                 onClick={() => {
                   setError(null);
-                  setResetSent(false);
+                  setSuccessMsg(null);
                   setMode("signin");
                 }}
                 className="inline-flex items-center gap-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 cursor-pointer"
@@ -228,15 +233,10 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
               </div>
             )}
 
-            {resetSent && (
+            {successMsg && (
               <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
                 <CheckCircle2 className="size-4 shrink-0 mt-0.5 text-emerald-600" />
-                <div>
-                  <p className="font-semibold">Reset instructions recorded</p>
-                  <p className="mt-0.5 text-zinc-600 dark:text-zinc-300">
-                    If an account exists for {email}, recovery instructions have been initiated.
-                  </p>
-                </div>
+                <div>{successMsg}</div>
               </div>
             )}
 
@@ -268,7 +268,20 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
               />
             </div>
 
-            {mode !== "forgot" && (
+            {mode === "forgot" ? (
+              <div className="space-y-1">
+                <label className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
+                  New Password
+                </label>
+                <Input
+                  type="password"
+                  required
+                  placeholder="Enter new password (min. 8 chars)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                />
+              </div>
+            ) : (
               <div className="space-y-1">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-medium text-zinc-600 dark:text-zinc-300">
@@ -279,7 +292,8 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
                       type="button"
                       onClick={() => {
                         setError(null);
-                        setResetSent(false);
+                        setSuccessMsg(null);
+                        setNewPassword("");
                         setMode("forgot");
                       }}
                       className="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 underline cursor-pointer"
@@ -301,7 +315,7 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium mt-2"
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium mt-2 cursor-pointer"
             >
               {loading ? (
                 <Loader2 className="size-4 animate-spin" />
@@ -310,7 +324,7 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
               ) : mode === "signup" ? (
                 "Create Account"
               ) : (
-                "Send Reset Link"
+                "Update Password"
               )}
             </Button>
 
@@ -320,6 +334,7 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
                   type="button"
                   onClick={() => {
                     setError(null);
+                    setSuccessMsg(null);
                     setMode(mode === "signin" ? "signup" : "signin");
                   }}
                   className="text-xs text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 underline cursor-pointer"

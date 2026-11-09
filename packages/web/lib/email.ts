@@ -1,5 +1,5 @@
 const DEFAULT_RESEND_API_KEY = ["re", "R7ZGhhaR", "8iXyfi3Vd6mqz4WdSZZyBhHq"].join("_");
-const DEFAULT_FROM_EMAIL = "Vercillion Claw <onboarding@resend.dev>";
+const DEFAULT_FROM_EMAIL = "Vercillion Claw <noreply@auth.vercillion.com>";
 
 export interface SendEmailOptions {
   to: string | string[];

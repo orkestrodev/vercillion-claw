@@ -1,7 +1,7 @@
 import { betterAuth } from "better-auth";
 import { createClient } from "@libsql/client/web";
 import { LibsqlDialect } from "@libsql/kysely-libsql";
-import { sendEmail, generatePasswordResetEmail } from "./email";
+import { sendEmail, generatePasswordResetEmail, generateVerificationEmail } from "./email";
 
 const FALLBACK_TURSO_URL = "libsql://vextral-vextralai.aws-eu-central-1.turso.io";
 const FALLBACK_TURSO_TOKEN =
@@ -81,6 +81,8 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
+    autoSignIn: false,
     async sendResetPassword(data) {
       console.log(`[AUTH] Password reset requested for ${data.user.email}. Reset URL: ${data.url}`);
       try {
@@ -101,6 +103,33 @@ export const auth = betterAuth({
         }
       } catch (err: any) {
         console.error(`[AUTH] Error sending password reset email:`, err?.message || err);
+      }
+    },
+  },
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    async sendVerificationEmail(data) {
+      console.log(`[AUTH] Email verification requested for ${data.user.email}. Verification URL: ${data.url}`);
+      try {
+        const { html, text, subject } = generateVerificationEmail({
+          verificationUrl: data.url,
+          userEmail: data.user.email,
+          userName: data.user.name,
+        });
+        const result = await sendEmail({
+          to: data.user.email,
+          subject,
+          html,
+          text,
+        });
+        if (!result.success) {
+          console.warn(`[AUTH] Resend email verification delivery notice for ${data.user.email}: ${result.error}`);
+        } else {
+          console.log(`[AUTH] Verification email delivered successfully via Resend to ${data.user.email}`);
+        }
+      } catch (err: any) {
+        console.error(`[AUTH] Error sending verification email:`, err?.message || err);
       }
     },
   },

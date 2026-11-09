@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { signIn, signUp, useSession, requestPasswordReset } from "@/lib/auth-client";
+import { useState, useEffect } from "react";
+import { signIn, signUp, useSession, requestPasswordReset, sendVerificationEmail } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Sparkles, Loader2, Lock, ShieldCheck, ArrowLeft, CheckCircle2, Mail, KeyRound } from "lucide-react";
+import { Sparkles, Loader2, Lock, ShieldCheck, ArrowLeft, CheckCircle2, Mail, KeyRound, AlertCircle } from "lucide-react";
 
 export function AuthGate({ children }: { children: React.ReactNode }) {
   const { data: session, isPending } = useSession();
@@ -15,8 +15,20 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resendingVerification, setResendingVerification] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("verified") === "true") {
+        setSuccessMsg("Email verified successfully! You can now sign in.");
+        window.history.replaceState({}, "", window.location.pathname);
+      }
+    }
+  }, []);
 
   if (isPending) {
     return (
@@ -35,6 +47,31 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
+  const handleResendVerification = async () => {
+    const targetEmail = unverifiedEmail || email.trim();
+    if (!targetEmail) return;
+
+    setResendingVerification(true);
+    setError(null);
+
+    try {
+      const res = await sendVerificationEmail({
+        email: targetEmail,
+        callbackURL: window.location.origin + "/?verified=true",
+      });
+
+      if (res?.error) {
+        setError(res.error.message || "Failed to resend verification email.");
+      } else {
+        setSuccessMsg(`Verification email resent to ${targetEmail}! Please check your inbox.`);
+      }
+    } catch (err: any) {
+      setError(err?.message || "Failed to resend verification email.");
+    } finally {
+      setResendingVerification(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -43,21 +80,39 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
     try {
       if (mode === "signin") {
+        setUnverifiedEmail(null);
         const res = await signIn.email({
           email: email.trim(),
           password,
         });
         if (res?.error) {
-          setError(res.error.message || "Failed to sign in. Check your email and password.");
+          const isUnverified =
+            res.error.code === "EMAIL_NOT_VERIFIED" ||
+            res.error.message?.toLowerCase().includes("not verified");
+          if (isUnverified) {
+            setUnverifiedEmail(email.trim());
+            setError("Your email address is not verified yet. Please verify your email before signing in.");
+          } else {
+            setError(res.error.message || "Failed to sign in. Check your email and password.");
+          }
         }
       } else if (mode === "signup") {
+        setUnverifiedEmail(null);
         const res = await signUp.email({
           name: name.trim() || "User",
           email: email.trim(),
           password,
+          callbackURL: window.location.origin + "/?verified=true",
         });
         if (res?.error) {
           setError(res.error.message || "Failed to create account.");
+        } else {
+          setUnverifiedEmail(email.trim());
+          setSuccessMsg(
+            `Account created! A verification email has been sent to ${email.trim()} via Resend. Please click the link in your email to verify your account before signing in.`
+          );
+          setPassword("");
+          setMode("signin");
         }
       } else if (mode === "forgot") {
         if (forgotMethod === "email") {
@@ -175,14 +230,56 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         <form onSubmit={handleSubmit} className="mt-5 space-y-3.5">
           {error && (
             <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-xs text-red-600 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-400">
-              {error}
+              <div>{error}</div>
+              {unverifiedEmail && (
+                <button
+                  type="button"
+                  disabled={resendingVerification}
+                  onClick={handleResendVerification}
+                  className="mt-2.5 inline-flex items-center gap-1.5 font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 underline cursor-pointer"
+                >
+                  {resendingVerification ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Sending verification link...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="size-3.5" />
+                      <span>Resend verification email to {unverifiedEmail}</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           )}
 
           {successMsg && (
-            <div className="flex items-start gap-2 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
-              <CheckCircle2 className="size-4 shrink-0 mt-0.5 text-emerald-600" />
-              <div>{successMsg}</div>
+            <div className="flex flex-col gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-xs text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/30 dark:text-emerald-300">
+              <div className="flex items-start gap-2">
+                <CheckCircle2 className="size-4 shrink-0 mt-0.5 text-emerald-600" />
+                <div>{successMsg}</div>
+              </div>
+              {unverifiedEmail && (
+                <button
+                  type="button"
+                  disabled={resendingVerification}
+                  onClick={handleResendVerification}
+                  className="mt-1 ml-6 self-start inline-flex items-center gap-1.5 font-medium text-emerald-700 hover:text-emerald-800 dark:text-emerald-400 underline cursor-pointer"
+                >
+                  {resendingVerification ? (
+                    <>
+                      <Loader2 className="size-3.5 animate-spin" />
+                      <span>Resending...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Mail className="size-3.5" />
+                      <span>Didn't get the email? Click to resend</span>
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           )}
 

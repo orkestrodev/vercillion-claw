@@ -24,8 +24,10 @@ function resolveTursoUrl(): string {
 }
 
 function resolveTursoToken(): string {
-  const raw = cleanString(process.env.TURSO_AUTH_TOKEN) || FALLBACK_TURSO_TOKEN;
-  // Extract pure JWT substring to guard against quotes, newlines, or extra text
+  const raw = cleanString(process.env.TURSO_AUTH_TOKEN);
+  if (!raw || raw.length < 100 || raw.includes("...")) {
+    return FALLBACK_TURSO_TOKEN;
+  }
   const match = raw.match(/eyJ[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+\.[a-zA-Z0-9_-]+/);
   return match ? match[0] : raw;
 }

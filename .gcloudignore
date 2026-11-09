@@ -1,6 +1,9 @@
 .gcloudignore
-.git
+.git/
+**/.git/
 .gitignore
+.next/
+**/.next/
 
 # Dependency directories
 node_modules/

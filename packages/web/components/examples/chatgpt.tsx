@@ -39,13 +39,31 @@ import {
 import { MarkdownText } from "@/components/assistant-ui/elements/markdown-text";
 import { ToolFallback } from "@/components/assistant-ui/elements/tool-fallback.aui";
 import { CloneThreadShell } from "./clone-thread-shell";
+import { AuthButton } from "@/components/auth/auth-button";
 
 export const ChatGPT: FC = () => {
   return (
     <CloneThreadShell>
-      <ThreadPrimitive.Root className="flex h-full flex-col items-stretch bg-white px-4 text-[#0d0d0d] dark:bg-black dark:text-[#ececec]">
+      <ThreadPrimitive.Root className="relative flex h-full flex-col items-stretch bg-white px-4 text-[#0d0d0d] dark:bg-black dark:text-[#ececec]">
+        <header className="absolute top-0 left-0 right-0 z-10 flex h-14 items-center justify-between border-b border-zinc-100 bg-white/80 px-4 backdrop-blur-md dark:border-zinc-800/80 dark:bg-black/80">
+          <div className="flex items-center gap-2 pl-10 md:pl-0">
+            <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+              Vercillion Claw
+            </span>
+            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              Cloud Run Live
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <AuthButton collapsed={true} />
+          </div>
+        </header>
+
         <AuiIf condition={(s) => s.thread.isEmpty}>
-          <EmptyState />
+          <div className="pt-14 h-full flex flex-col justify-center">
+            <EmptyState />
+          </div>
         </AuiIf>
 
         <AuiIf condition={(s) => !s.thread.isEmpty}>

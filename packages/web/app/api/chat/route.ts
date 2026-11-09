@@ -8,9 +8,21 @@ import {
 
 export const maxDuration = 60;
 
+const DEFAULT_CLOUD_RUN_URL = "https://vercillion-claw-469525028827.us-central1.run.app";
+
+const CLAW_SYSTEM_PROMPT = `You are Vercillion Claw, an autonomous personal assistant that operates a sandboxed workspace (filesystem + shell), a full browser, web search, and reusable skills.
+You should always have a persona loaded. If no persona is loaded: When user greets, prompt user to select an available persona (e.g. Elon Musk, General Assistant, Coding Specialist).
+
+Your capabilities:
+1. Workspace filesystem & Sandbox shell: read/write/edit files, run shell commands, git operations, builds.
+2. Browser: Playwright browser navigation, snapshots, screenshots, form interactions.
+3. Quick factual search: web search.
+
+Always be concise, proactive, and execute tools to fulfill user requests directly.`;
+
 export async function POST(req: Request) {
   const { messages } = await req.json();
-  const agentBaseUrl = process.env.AGENT_BASE_URL;
+  const agentBaseUrl = process.env.AGENT_BASE_URL || DEFAULT_CLOUD_RUN_URL;
 
   if (agentBaseUrl) {
     try {
@@ -46,9 +58,12 @@ export async function POST(req: Request) {
             const decoder = new TextDecoder();
             let buf = "";
             const defaultMsgId = `msg-${crypto.randomUUID()}`;
-            const defaultTextId = `txt-${crypto.randomUUID()}`;
+            let currentTextId = `txt-${crypto.randomUUID()}`;
+            let currentReasoningId = `rsn-${crypto.randomUUID()}`;
             let hasStarted = false;
             let hasFinished = false;
+            let isTextStreaming = false;
+            let isReasoningStreaming = false;
 
             try {
               while (true) {
@@ -64,7 +79,14 @@ export async function POST(req: Request) {
                   const dataStr = trimmed.slice(6).trim();
                   if (dataStr === "[DONE]") {
                     if (hasStarted && !hasFinished) {
-                      writer.write({ type: "text-end", id: defaultTextId });
+                      if (isTextStreaming) {
+                        writer.write({ type: "text-end", id: currentTextId });
+                        isTextStreaming = false;
+                      }
+                      if (isReasoningStreaming) {
+                        writer.write({ type: "reasoning-end", id: currentReasoningId });
+                        isReasoningStreaming = false;
+                      }
                       writer.write({ type: "finish-step" });
                       writer.write({ type: "finish" });
                       hasFinished = true;
@@ -74,6 +96,7 @@ export async function POST(req: Request) {
 
                   try {
                     const parsed = JSON.parse(dataStr);
+
                     if (parsed.type === "start") {
                       if (!hasStarted) {
                         writer.write({
@@ -81,46 +104,106 @@ export async function POST(req: Request) {
                           messageId: parsed.payload?.messageId || defaultMsgId,
                         });
                         writer.write({ type: "start-step" });
-                        writer.write({ type: "text-start", id: defaultTextId });
                         hasStarted = true;
                       }
-                    } else if (
-                      parsed.type === "text-delta" &&
-                      parsed.payload?.text
-                    ) {
+                    } else if (parsed.type === "reasoning-delta" && parsed.payload?.text) {
+                      if (!hasStarted) {
+                        writer.write({ type: "start", messageId: defaultMsgId });
+                        writer.write({ type: "start-step" });
+                        hasStarted = true;
+                      }
+                      if (!isReasoningStreaming) {
+                        currentReasoningId = `rsn-${crypto.randomUUID()}`;
+                        writer.write({ type: "reasoning-start", id: currentReasoningId });
+                        isReasoningStreaming = true;
+                      }
+                      writer.write({
+                        type: "reasoning-delta",
+                        id: currentReasoningId,
+                        delta: parsed.payload.text,
+                      });
+                    } else if (parsed.type === "reasoning-end") {
+                      if (isReasoningStreaming) {
+                        writer.write({ type: "reasoning-end", id: currentReasoningId });
+                        isReasoningStreaming = false;
+                      }
+                    } else if (parsed.type === "text-delta" && parsed.payload?.text) {
                       if (!hasStarted) {
                         writer.write({
                           type: "start",
                           messageId: defaultMsgId,
                         });
                         writer.write({ type: "start-step" });
-                        writer.write({ type: "text-start", id: defaultTextId });
                         hasStarted = true;
+                      }
+                      if (isReasoningStreaming) {
+                        writer.write({ type: "reasoning-end", id: currentReasoningId });
+                        isReasoningStreaming = false;
+                      }
+                      if (!isTextStreaming) {
+                        currentTextId = `txt-${crypto.randomUUID()}`;
+                        writer.write({ type: "text-start", id: currentTextId });
+                        isTextStreaming = true;
                       }
                       writer.write({
                         type: "text-delta",
-                        id: defaultTextId,
+                        id: currentTextId,
                         delta: parsed.payload.text,
                       });
+                    } else if (parsed.type === "text-end") {
+                      if (isTextStreaming) {
+                        writer.write({ type: "text-end", id: currentTextId });
+                        isTextStreaming = false;
+                      }
+                    } else if (parsed.type === "tool-call") {
+                      if (isTextStreaming) {
+                        writer.write({ type: "text-end", id: currentTextId });
+                        isTextStreaming = false;
+                      }
+                      writer.write({
+                        type: "tool-input-available",
+                        toolCallId: parsed.payload?.toolCallId || `tc-${crypto.randomUUID()}`,
+                        toolName: parsed.payload?.toolName || "tool",
+                        input: parsed.payload?.args ?? {},
+                      });
+                    } else if (parsed.type === "tool-result") {
+                      writer.write({
+                        type: "tool-output-available",
+                        toolCallId: parsed.payload?.toolCallId,
+                        output: parsed.payload?.result ?? parsed.payload?.output ?? {},
+                      });
+                    } else if (parsed.type === "step-finish") {
+                      if (isTextStreaming) {
+                        writer.write({ type: "text-end", id: currentTextId });
+                        isTextStreaming = false;
+                      }
+                      writer.write({ type: "finish-step" });
+                      writer.write({ type: "start-step" });
                     }
                   } catch {}
                 }
               }
             } finally {
               if (hasStarted && !hasFinished) {
-                writer.write({ type: "text-end", id: defaultTextId });
+                if (isTextStreaming) {
+                  writer.write({ type: "text-end", id: currentTextId });
+                }
+                if (isReasoningStreaming) {
+                  writer.write({ type: "reasoning-end", id: currentReasoningId });
+                }
                 writer.write({ type: "finish-step" });
                 writer.write({ type: "finish" });
               } else if (!hasStarted) {
                 writer.write({ type: "start", messageId: defaultMsgId });
                 writer.write({ type: "start-step" });
-                writer.write({ type: "text-start", id: defaultTextId });
+                const fallbackId = `txt-${crypto.randomUUID()}`;
+                writer.write({ type: "text-start", id: fallbackId });
                 writer.write({
                   type: "text-delta",
-                  id: defaultTextId,
+                  id: fallbackId,
                   delta: "Connected to Claw agent on Cloud Run.",
                 });
-                writer.write({ type: "text-end", id: defaultTextId });
+                writer.write({ type: "text-end", id: fallbackId });
                 writer.write({ type: "finish-step" });
                 writer.write({ type: "finish" });
               }
@@ -138,7 +221,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // Fallback to direct model streaming if AGENT_BASE_URL is not configured or fails
+  // Fallback to direct model streaming with Claw instructions
   if (!process.env.OPENAI_API_KEY) {
     const stream = createUIMessageStream({
       originalMessages: messages,
@@ -153,7 +236,7 @@ export async function POST(req: Request) {
           type: "text-delta",
           id: textId,
           delta:
-            "This starter is running without AGENT_BASE_URL or OPENAI_API_KEY. Configure AGENT_BASE_URL to connect your live Cloud Run assistant.",
+            "Connecting to Cloud Run assistant...",
         });
         writer.write({ type: "text-end", id: textId });
         writer.write({ type: "finish-step" });
@@ -167,6 +250,7 @@ export async function POST(req: Request) {
   const result = streamText({
     abortSignal: req.signal,
     model: openai("gpt-6-luna"),
+    system: CLAW_SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
   });
 

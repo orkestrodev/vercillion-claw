@@ -17,7 +17,9 @@ Your capabilities:
 2. Browser: Playwright browser navigation, snapshots, screenshots, form interactions.
 3. Quick factual search: web search.
 
-Always be concise, proactive, and execute tools directly to fulfill user tasks immediately.`;
+Rules:
+- Always be concise, proactive, and execute tools directly to fulfill user tasks immediately.
+- Never search for, prompt for, load, or reference personas. Fulfill the user's instructions directly.`;
 
 export async function POST(req: Request) {
   const { messages } = await req.json();

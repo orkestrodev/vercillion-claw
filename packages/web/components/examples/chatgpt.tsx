@@ -38,6 +38,12 @@ import {
 } from "lucide-react";
 import { MarkdownText } from "@/components/assistant-ui/elements/markdown-text";
 import { ToolFallback } from "@/components/assistant-ui/elements/tool-fallback.aui";
+import {
+  ReasoningRoot,
+  ReasoningTrigger,
+  ReasoningContent,
+  ReasoningText,
+} from "@/components/assistant-ui/elements/reasoning.aui";
 import { CloneThreadShell } from "./clone-thread-shell";
 import { AuthButton } from "@/components/auth/auth-button";
 
@@ -325,6 +331,18 @@ const AssistantMessage: FC = () => {
           <MessagePrimitive.Parts>
             {({ part }) => {
               if (part.type === "text") return <MarkdownText />;
+              if (part.type === "reasoning") {
+                return (
+                  <ReasoningRoot>
+                    <ReasoningTrigger />
+                    <ReasoningContent>
+                      <ReasoningText>
+                        <MarkdownText />
+                      </ReasoningText>
+                    </ReasoningContent>
+                  </ReasoningRoot>
+                );
+              }
               if (part.type === "tool-call")
                 return part.toolUI ?? <ToolFallback {...part} />;
               return null;

@@ -92,7 +92,7 @@ export const assistantToolkit = defineToolkit({
     parameters: z.object({
       query: z
         .string()
-        .describe("Query to search project documents, skills, and personas"),
+        .describe("Query to search project documents and skills"),
     }),
     execute: async ({
       query,

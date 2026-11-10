@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     }
 
     for (const dir of possibleDirs) {
-      if (fs.existsSync(dir)) {
+      if (fs.existsSync(/*turbopackIgnore: true*/ dir)) {
         scanDir(dir, dir);
       }
     }

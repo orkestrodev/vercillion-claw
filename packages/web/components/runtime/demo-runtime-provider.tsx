@@ -1,9 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { AssistantRuntimeProvider, AssistantCloud } from "@assistant-ui/react";
+import {
+  AssistantRuntimeProvider,
+  AssistantCloud,
+  AuiConfig,
+  Tools,
+} from "@assistant-ui/react";
 import { AssistantChatTransport, useChatRuntime } from "@assistant-ui/ai-sdk";
 import { useSession } from "@/lib/auth-client";
+import { assistantToolkit } from "@/lib/toolkit";
 
 const DEFAULT_ASSISTANT_CLOUD_URL = "https://proj-0w01b4eitgke.assistant-api.com";
 
@@ -19,6 +25,12 @@ export function DemoRuntimeProvider({ children }: { children: React.ReactNode })
     });
   }, []);
 
+  const config = useMemo(() => {
+    return AuiConfig({
+      tools: Tools({ toolkit: assistantToolkit }),
+    });
+  }, []);
+
   const runtime = useChatRuntime({
     transport: new AssistantChatTransport({ api: "/api/chat" }),
     cloud,
@@ -26,7 +38,7 @@ export function DemoRuntimeProvider({ children }: { children: React.ReactNode })
   });
 
   return (
-    <AssistantRuntimeProvider runtime={runtime}>
+    <AssistantRuntimeProvider runtime={runtime} config={config}>
       {children}
     </AssistantRuntimeProvider>
   );

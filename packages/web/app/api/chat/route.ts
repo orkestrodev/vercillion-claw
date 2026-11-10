@@ -16,9 +16,8 @@ Your capabilities:
 1. Workspace filesystem & Sandbox shell: read/write/edit files, run shell commands, git operations, builds.
 2. Browser: Playwright browser navigation, snapshots, screenshots, form interactions.
 3. Quick factual search: web search.
-4. Personas: Optional personas can be loaded from "personas/" if requested by the user.
 
-Always be concise, proactive, and execute tools directly to fulfill user tasks immediately without blocking on persona selection.`;
+Always be concise, proactive, and execute tools directly to fulfill user tasks immediately.`;
 
 export async function POST(req: Request) {
   const { messages } = await req.json();

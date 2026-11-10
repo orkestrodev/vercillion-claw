@@ -112,9 +112,6 @@ Access the agent API and UI at `http://localhost:7860`.
 
 ```text
 workspace/
-├── personas/
-│   ├── elon-musk/
-│   └── persona-workflow.md
 ├── skills/
 │   ├── general-tasks/SKILL.md
 │   └── research-tasks/SKILL.md

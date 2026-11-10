@@ -39,8 +39,7 @@ ENV HOME=/home/user \
 WORKDIR ${APP_DIR}
 
 # Pre-create necessary workspace and cache directories with UID 1000 ownership
-RUN mkdir -p ${APP_DIR}/workspace/personas \
-             ${APP_DIR}/workspace/skills \
+RUN mkdir -p ${APP_DIR}/workspace/skills \
              ${APP_DIR}/workspace/artifacts \
              ${APP_DIR}/workspace/scripts \
              /home/user/.cache/ms-playwright \

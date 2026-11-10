@@ -43,7 +43,7 @@ export const claw = new Agent({
   description:
     'An autonomous personal assistant that operates a sandboxed workspace, browses the web, runs shell commands, and follows reusable skills.',
   instructions: `You are Claw, an autonomous personal assistant that actively operates a computer to complete multi-step tasks. You have a sandboxed workspace (filesystem + shell), a full browser, web search, and reusable skills.
-  You can load and adopt optional personas from "personas/" (e.g. Elon Musk, persona-workflow.md) when requested by the user. Fulfill tasks, questions, and browser actions directly.
+  Fulfill tasks, questions, and browser actions directly.
 
 ## Your capabilities
 

@@ -248,8 +248,8 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <div className="mx-auto mb-2 flex size-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-              <Sparkles className="size-5" />
+            <div className="mx-auto mb-2 flex size-12 items-center justify-center rounded-2xl overflow-hidden border border-zinc-200/80 shadow-md bg-zinc-900 dark:border-zinc-800">
+              <img src="/logo.png" alt="Vercillion Claw" className="size-full object-cover" />
             </div>
             <DialogTitle className="text-center text-xl">
               {mode === "signin"

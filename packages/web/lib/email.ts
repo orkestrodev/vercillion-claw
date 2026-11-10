@@ -98,10 +98,8 @@ If you didn't request a password reset, you can safely ignore this email.
           <!-- Header -->
           <tr>
             <td style="padding: 32px 32px 24px; text-align: center; border-bottom: 1px solid #27272a;">
-              <div style="display: inline-block; background-color: #059669; color: #ffffff; padding: 12px; border-radius: 14px; margin-bottom: 12px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                </svg>
+              <div style="margin-bottom: 16px;">
+                <img src="https://vercillion-claw-web-j9vh.vercel.app/logo.png" alt="Vercillion Claw Logo" width="72" height="72" style="width: 72px; height: 72px; border-radius: 18px; display: inline-block; object-fit: cover; border: 1px solid #3f3f46; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);" />
               </div>
               <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">Vercillion Claw</h1>
               <p style="margin: 6px 0 0; font-size: 13px; color: #a1a1aa;">Autonomous AI Assistant & Persistent Agent</p>
@@ -194,10 +192,8 @@ If you did not sign up for a Vercillion Claw account, you can safely ignore this
           <!-- Header -->
           <tr>
             <td style="padding: 32px 32px 24px; text-align: center; border-bottom: 1px solid #27272a;">
-              <div style="display: inline-block; background-color: #059669; color: #ffffff; padding: 12px; border-radius: 14px; margin-bottom: 12px;">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/>
-                </svg>
+              <div style="margin-bottom: 16px;">
+                <img src="https://vercillion-claw-web-j9vh.vercel.app/logo.png" alt="Vercillion Claw Logo" width="72" height="72" style="width: 72px; height: 72px; border-radius: 18px; display: inline-block; object-fit: cover; border: 1px solid #3f3f46; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);" />
               </div>
               <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #ffffff; letter-spacing: -0.02em;">Vercillion Claw</h1>
               <p style="margin: 6px 0 0; font-size: 13px; color: #a1a1aa;">Autonomous AI Assistant & Persistent Agent</p>

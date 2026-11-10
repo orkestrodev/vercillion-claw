@@ -94,8 +94,8 @@ function ResetPasswordForm() {
   return (
     <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900/90 dark:backdrop-blur-xl">
       <div className="flex flex-col items-center text-center">
-        <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-          <Sparkles className="size-7" />
+        <div className="mb-3 flex size-16 items-center justify-center rounded-2xl overflow-hidden border border-zinc-200/80 shadow-xl bg-zinc-900 dark:border-zinc-800">
+          <img src="/logo.png" alt="Vercillion Claw" className="size-full object-cover" />
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
           Vercillion Claw

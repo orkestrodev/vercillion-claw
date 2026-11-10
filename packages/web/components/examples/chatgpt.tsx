@@ -46,14 +46,23 @@ export const ChatGPT: FC = () => {
     <CloneThreadShell>
       <ThreadPrimitive.Root className="relative flex h-full flex-col items-stretch bg-white px-4 text-[#0d0d0d] dark:bg-black dark:text-[#ececec]">
         <header className="absolute top-0 left-0 right-0 z-10 flex h-14 items-center justify-between border-b border-zinc-100 bg-white/80 px-4 backdrop-blur-md dark:border-zinc-800/80 dark:bg-black/80">
-          <div className="flex items-center gap-2 pl-10 md:pl-0">
-            <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
-              Vercillion Claw
-            </span>
-            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
-              <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              Cloud Run Live
-            </span>
+          <div className="flex items-center gap-2.5 pl-10 md:pl-0">
+            <div className="size-8 shrink-0 rounded-full overflow-hidden border border-emerald-500/20 shadow-sm bg-zinc-900">
+              <img
+                src="/logo.png"
+                alt="Vercillion Claw"
+                className="size-full object-cover"
+              />
+            </div>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:gap-2">
+              <span className="text-sm font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">
+                Vercillion Claw
+              </span>
+              <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Cloud Run Live
+              </span>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <AuthButton collapsed={true} />
@@ -93,11 +102,20 @@ export const ChatGPT: FC = () => {
 const EmptyState: FC = () => {
   return (
     <div className="flex grow flex-col items-center justify-center px-4 pb-[16vh]">
-      <div className="mx-auto flex w-full max-w-3xl flex-col items-stretch gap-6">
+      <div className="mx-auto flex w-full max-w-3xl flex-col items-center gap-5">
+        <div className="size-20 rounded-3xl overflow-hidden border border-zinc-200/80 shadow-xl bg-zinc-900 dark:border-zinc-800">
+          <img
+            src="/logo.png"
+            alt="Vercillion Claw"
+            className="size-full object-cover"
+          />
+        </div>
         <p className="text-center text-2xl leading-7 font-normal text-[#0d0d0d] dark:text-[#ececec]">
           Where should we begin?
         </p>
-        <Composer placeholder="Ask anything" />
+        <div className="w-full">
+          <Composer placeholder="Ask anything" />
+        </div>
       </div>
     </div>
   );
@@ -293,25 +311,34 @@ const assistantActionClassName =
 
 const AssistantMessage: FC = () => {
   return (
-    <MessagePrimitive.Root className="relative mx-auto flex w-full max-w-3xl flex-col">
-      <div className="text-[#0d0d0d] dark:text-[#ececec]">
-        <MessagePrimitive.Parts>
-          {({ part }) => {
-            if (part.type === "text") return <MarkdownText />;
-            if (part.type === "tool-call")
-              return part.toolUI ?? <ToolFallback {...part} />;
-            return null;
-          }}
-        </MessagePrimitive.Parts>
-        <MessagePrimitive.Error>
-          <ErrorPrimitive.Root className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
-            <ErrorPrimitive.Message className="line-clamp-3" />
-          </ErrorPrimitive.Root>
-        </MessagePrimitive.Error>
+    <MessagePrimitive.Root className="relative mx-auto flex w-full max-w-3xl flex-row items-start gap-3">
+      <div className="size-8 shrink-0 rounded-full overflow-hidden border border-zinc-200/80 bg-zinc-900 shadow-sm dark:border-zinc-800 mt-1">
+        <img
+          src="/logo.png"
+          alt="Vercillion Claw"
+          className="size-full object-cover"
+        />
       </div>
 
-      <div className="-ml-2 flex items-center pt-1">
-        <ActionBarPrimitive.Root hideWhenRunning className="flex items-center">
+      <div className="flex-1 min-w-0 flex flex-col">
+        <div className="text-[#0d0d0d] dark:text-[#ececec]">
+          <MessagePrimitive.Parts>
+            {({ part }) => {
+              if (part.type === "text") return <MarkdownText />;
+              if (part.type === "tool-call")
+                return part.toolUI ?? <ToolFallback {...part} />;
+              return null;
+            }}
+          </MessagePrimitive.Parts>
+          <MessagePrimitive.Error>
+            <ErrorPrimitive.Root className="mt-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900/60 dark:bg-red-950/30 dark:text-red-200">
+              <ErrorPrimitive.Message className="line-clamp-3" />
+            </ErrorPrimitive.Root>
+          </MessagePrimitive.Error>
+        </div>
+
+        <div className="-ml-2 flex items-center pt-1">
+          <ActionBarPrimitive.Root hideWhenRunning className="flex items-center">
           <ActionBarPrimitive.Copy asChild>
             <TooltipIconButton
               tooltip="Copy"
@@ -399,7 +426,8 @@ const AssistantMessage: FC = () => {
         </ActionBarPrimitive.Root>
         <BranchPicker className="ml-1" />
       </div>
-    </MessagePrimitive.Root>
+    </div>
+  </MessagePrimitive.Root>
   );
 };
 

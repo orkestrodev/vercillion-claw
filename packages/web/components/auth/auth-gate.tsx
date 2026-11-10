@@ -34,8 +34,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex h-dvh w-full flex-col items-center justify-center bg-white dark:bg-black text-zinc-900 dark:text-zinc-100">
         <div className="flex flex-col items-center gap-3">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-emerald-600/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
-            <Sparkles className="size-6 animate-pulse" />
+          <div className="flex size-14 items-center justify-center rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 shadow-md bg-zinc-900 animate-pulse">
+            <img src="/logo.png" alt="Vercillion Claw" className="size-full object-cover" />
           </div>
           <p className="text-sm font-medium text-zinc-500">Loading Vercillion Claw...</p>
         </div>
@@ -158,8 +158,8 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-dvh w-full items-center justify-center bg-gradient-to-b from-zinc-50 to-zinc-100 p-4 dark:from-zinc-950 dark:to-black">
       <div className="w-full max-w-md rounded-3xl border border-zinc-200 bg-white p-8 shadow-2xl dark:border-zinc-800 dark:bg-zinc-900/90 dark:backdrop-blur-xl">
         <div className="flex flex-col items-center text-center">
-          <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
-            <Sparkles className="size-7" />
+          <div className="mb-3 flex size-16 items-center justify-center rounded-2xl overflow-hidden border border-zinc-200/80 shadow-xl bg-zinc-900 dark:border-zinc-800">
+            <img src="/logo.png" alt="Vercillion Claw" className="size-full object-cover" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900 dark:text-white">
             Vercillion Claw

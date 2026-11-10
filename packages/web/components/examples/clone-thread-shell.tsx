@@ -127,7 +127,12 @@ export const CloneThreadShell: FC<CloneThreadShellProps> = ({
           {headerContent !== undefined
             ? headerContent
             : !sidebarCollapsed && (
-                <span className="ml-2 truncate text-sm font-medium">Chats</span>
+                <div className="ml-2 flex items-center gap-2 truncate text-sm font-medium">
+                  <div className="size-5 shrink-0 rounded-full overflow-hidden border border-zinc-200/80 bg-zinc-900 shadow-xs dark:border-zinc-800">
+                    <img src="/icon.png" alt="Vercillion Claw" className="size-full object-cover" />
+                  </div>
+                  <span>Chats</span>
+                </div>
               )}
         </div>
 
@@ -198,8 +203,11 @@ export const CloneThreadShell: FC<CloneThreadShellProps> = ({
           </div>
         )}
         <SheetContent side="left" className="flex flex-col p-0">
-          <SheetTitle className="flex h-12 shrink-0 items-center px-4 text-sm font-medium">
-            {sheetTitle ?? "Chats"}
+          <SheetTitle className="flex h-12 shrink-0 items-center px-4 text-sm font-medium gap-2">
+            <div className="size-5 shrink-0 rounded-full overflow-hidden border border-zinc-200/80 bg-zinc-900 shadow-xs dark:border-zinc-800">
+              <img src="/icon.png" alt="Vercillion Claw" className="size-full object-cover" />
+            </div>
+            <span>{sheetTitle ?? "Chats"}</span>
           </SheetTitle>
           <div
             className="relative flex-1 overflow-y-auto p-3"

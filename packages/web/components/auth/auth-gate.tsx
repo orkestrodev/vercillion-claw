@@ -419,7 +419,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
 
         <div className="mt-6 flex items-center justify-center gap-1.5 border-t border-zinc-100 pt-4 text-[11px] text-zinc-400 dark:border-zinc-800 dark:text-zinc-500">
           <ShieldCheck className="size-3.5 text-emerald-500" />
-          <span>Secured by Better Auth & Turso libSQL</span>
+          <span>Secured with end-to-end encryption</span>
         </div>
       </div>
     </div>

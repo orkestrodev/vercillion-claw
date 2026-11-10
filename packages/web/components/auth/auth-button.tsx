@@ -259,7 +259,7 @@ export function AuthButton({ collapsed = false }: AuthButtonProps) {
                 : "Reset Password"}
             </DialogTitle>
             <DialogDescription className="text-center text-xs">
-              Powered by Better Auth & Turso Database
+              Access your autonomous personal assistant
             </DialogDescription>
           </DialogHeader>
 

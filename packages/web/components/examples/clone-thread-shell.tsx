@@ -147,7 +147,7 @@ export const CloneThreadShell: FC<CloneThreadShellProps> = ({
           {wrapNewThreadTooltip ? (
             <TooltipProvider>
               <Tooltip>
-                <TooltipTrigger render={newThread} />
+                <TooltipTrigger asChild>{newThread}</TooltipTrigger>
                 {sidebarCollapsed && (
                   <TooltipContent side="right">New Thread</TooltipContent>
                 )}

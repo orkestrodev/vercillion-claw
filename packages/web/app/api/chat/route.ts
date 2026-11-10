@@ -40,12 +40,17 @@ export async function POST(req: Request) {
         return { role: m.role, content };
       });
 
+      const payloadMessages = [
+        { role: "system", content: CLAW_SYSTEM_PROMPT },
+        ...formattedMessages.filter((m: any) => m.role !== "system"),
+      ];
+
       const response = await fetch(
         `${agentBaseUrl.replace(/\/$/, "")}/api/agents/claw/stream`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: formattedMessages }),
+          body: JSON.stringify({ messages: payloadMessages }),
           signal: req.signal,
         }
       );
